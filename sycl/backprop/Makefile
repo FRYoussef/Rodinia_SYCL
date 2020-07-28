@@ -1,7 +1,7 @@
 VENDOR      = intel
 OPTIMIZE    = yes
 DEBUG       = no
-DEVICE      = gpu
+GPU         = nvidia
 
 
 # Standard flags
@@ -12,9 +12,14 @@ LDFLAGS = -lm
 
 # Intel DPC++ Compiler
 ifneq (,$(findstring intel,$(VENDOR)))
-  CC = ${SYCL_ROOT_DIR}/bin/clang++
-  CFLAGS += -fsycl -fsycl-targets=nvptx64-nvidia-cuda-sycldevice -fsycl-unnamed-lambda
+  CC = clang++
+  CFLAGS += -fsycl -fsycl-unnamed-lambda
   LDFLAGS += 
+endif
+
+# Flags for nvidia gpu
+ifneq (,$(findstring nvidia,$(GPU)))
+  CFLAGS += -fsycl-targets=nvptx64-nvidia-cuda-sycldevice -DUSE_NVIDIA
 endif
 
 # Debug Flags

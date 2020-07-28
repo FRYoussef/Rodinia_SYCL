@@ -24,6 +24,18 @@ class CUDASelector : public device_selector {
     }
 };
 
+  // Intel iGPU
+  class NEOGPUDeviceSelector : public device_selector {
+  public:
+    int operator()(const device &Device) const override {
+      const std::string DeviceName = Device.get_info<info::device::name>();
+      const std::string DeviceVendor = Device.get_info<info::device::vendor>();
+
+      return Device.is_gpu() && (DeviceName.find("HD Graphics NEO") != std::string::npos);
+    }
+  };
+
+
 double get_time() {
   struct timeval t;
   gettimeofday(&t,NULL);
@@ -83,7 +95,12 @@ int bpnn_train_kernel(BPNN *net, float *eo, float *eh)
   double offload_start = get_time();
   {
 	// SYCL scope
-	CUDASelector selector;
+#ifdef USE_NVIDIA
+    CUDASelector selector;
+#else
+    NEOGPUDeviceSelector selector;
+#endif
+
 	queue q;
 	try {
 		cl::sycl::queue q(selector);
