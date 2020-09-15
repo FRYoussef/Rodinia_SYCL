@@ -113,12 +113,19 @@ int main(int argc, char ** argv) {
 	int local_work_size = grad_m - (2 * MaxR); 
 	int num_work_groups = grad_n - (2 * MaxR);
 
-#ifdef USE_GPU
-	gpu_selector dev_sel;
+#ifdef USE_NVIDIA
+    CUDASelector selector;
 #else
-	cpu_selector dev_sel;
+    NEOGPUDeviceSelector selector;
 #endif
-	queue q(dev_sel);
+
+	queue q;
+	try {
+		queue q(selector);
+		device Device(selector);
+	}catch (invalid_parameter_error &E) {
+	  std::cout << E.what() << std::endl;
+	}
 
 	const property_list props = property::buffer::use_host_ptr();
 

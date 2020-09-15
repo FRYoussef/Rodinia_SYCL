@@ -74,12 +74,13 @@ kernel_gpu_opencl_wrapper(	int xmax,
 	//======================================================================================================================================================150
 	//	GPU SETUP
 	//======================================================================================================================================================150
-#ifdef USE_GPU
-	gpu_selector dev_selector;
+#ifdef USE_NVIDIA
+    CUDASelector selector;
 #else
-	cpu_selector dev_selector;
+    NEOGPUDeviceSelector selector;
 #endif
-	queue command_queue(dev_selector);
+
+	queue command_queue(selector);
 
 	//====================================================================================================100
 	//	COMMON VARIABLES

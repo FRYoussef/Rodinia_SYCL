@@ -23,13 +23,13 @@
 
 #include "common.h"
 
-#ifdef USE_GPU
-gpu_selector dev_sel;
+#ifdef USE_NVIDIA
+    CUDASelector selector;
 #else
-cpu_selector dev_sel;
+    NEOGPUDeviceSelector selector;
 #endif
 
-queue q(dev_sel);
+queue q(selector);
 
 #include "streamcluster_cl.h"
 

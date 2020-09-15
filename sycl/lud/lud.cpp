@@ -35,6 +35,30 @@
 using namespace cl::sycl;
 constexpr access::mode sycl_read_write = access::mode::read_write;
 
+// NVIDIA device selector
+class CUDASelector : public device_selector {
+    public:
+        int operator()(const device &Device) const override {
+            const std::string DriverVersion = Device.get_info<info::device::driver_version>();
+
+            if (Device.is_gpu() && (DriverVersion.find("CUDA") != std::string::npos))
+                //std::cout << " CUDA device found " << std::endl;
+                return 1;
+
+            return -1;
+        }
+};
+
+// Intel iGPU
+class NEOGPUDeviceSelector : public device_selector {
+    public:
+        int operator()(const device &Device) const override {
+            const std::string DeviceName = Device.get_info<info::device::name>();
+            //const std::string DeviceVendor = Device.get_info<info::device::vendor>();
+            return Device.is_gpu() && (DeviceName.find("HD Graphics NEO") != std::string::npos);
+        }
+};
+
 
 double gettime() {
 	struct timeval t;
@@ -137,12 +161,19 @@ main ( int argc, char *argv[] )
 
 	{ // SYCL scope
 
-#ifdef USE_GPU
-	gpu_selector dev_sel;
+#ifdef USE_NVIDIA
+    CUDASelector selector;
 #else
-	cpu_selector dev_sel;
+    NEOGPUDeviceSelector selector;
 #endif
-	queue q(dev_sel);
+
+	queue q;
+	try {
+		queue q(selector);
+		device Device(selector);
+	}catch (invalid_parameter_error &E) {
+	  std::cout << E.what() << std::endl;
+	}
 
 	const property_list props = property::buffer::use_host_ptr();
 	buffer<float, 1> d_m (m, matrix_dim*matrix_dim, props);

@@ -147,12 +147,19 @@ int main(int argc, char **argv){
 
   double offload_start = get_time();
   { // SYCL scope
-#ifdef USE_GPU
-    gpu_selector dev_sel;
+#ifdef USE_NVIDIA
+    CUDASelector selector;
 #else
-    cpu_selector dev_sel;
+    NEOGPUDeviceSelector selector;
 #endif
-    queue q(dev_sel);
+
+	queue q;
+	try {
+		queue q(selector);
+		device Device(selector);
+	}catch (invalid_parameter_error &E) {
+	  std::cout << E.what() << std::endl;
+	}
 
     int nworkitems = BLOCK_SIZE;
     int workgroupsize = BLOCK_SIZE;
@@ -229,11 +236,11 @@ int main(int argc, char **argv){
 
 #ifdef TRACEBACK
 
-#ifdef USE_GPU
+//#ifdef USE_GPU
   FILE *fpo = fopen("gpu_result.txt","w");
-#else
-  FILE *fpo = fopen("cpu_result.txt","w");
-#endif
+// #else
+//   FILE *fpo = fopen("cpu_result.txt","w");
+// #endif
   fprintf(fpo, "print traceback value:\n");
 
   for (int i = max_rows - 2,  j = max_rows - 2; i>=0, j>=0;){

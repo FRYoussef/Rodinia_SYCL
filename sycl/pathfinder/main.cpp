@@ -102,23 +102,30 @@ int main(int argc, char** argv)
   int size = rows * cols;  // also global work size // 10000000
 
   // running the opencl application shows lws=4000 (cpu) and lws=250 (gpu)
-#ifdef USE_GPU
+//#ifdef USE_GPU
   int lws = 250;
-#else
-  int lws = 4000;
-#endif
+// #else
+//   int lws = 4000;
+// #endif
   cl_int* h_outputBuffer = (cl_int*)calloc(16384, sizeof(cl_int));
   int theHalo = HALO;
 
   double offload_start = get_time();
   { // SYCL scope
 
-#ifdef USE_GPU
-    gpu_selector dev_sel;
+#ifdef USE_NVIDIA
+    CUDASelector selector;
 #else
-    cpu_selector dev_sel;
+    NEOGPUDeviceSelector selector;
 #endif
-    queue q(dev_sel);
+
+	queue q;
+	try {
+		queue q(selector);
+		device Device(selector);
+	}catch (invalid_parameter_error &E) {
+	  std::cout << E.what() << std::endl;
+	}
     // Allocate device memory.
 
     const property_list props = property::buffer::use_host_ptr();

@@ -5,11 +5,9 @@
 #include <math.h>
 #include <sys/time.h>
 #include "backprop.h"
-
 #include "common.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-
 
 double get_time() {
   struct timeval t;
@@ -68,13 +66,21 @@ int bpnn_train_kernel(BPNN *net, float *eo, float *eh)
   printf("Performing GPU computation\n");
 
   double offload_start = get_time();
-  { // SYCL scope
-#ifdef USE_GPU
-    gpu_selector dev_sel;
+  {
+	// SYCL scope
+#ifdef USE_NVIDIA
+    CUDASelector selector;
 #else
-    cpu_selector dev_sel;
+    NEOGPUDeviceSelector selector;
 #endif
-    queue q(dev_sel);
+
+	queue q;
+	try {
+		queue q(selector);
+		//device Device(selector);
+	} catch (invalid_parameter_error &E) {
+		std::cout << E.what() << std::endl;
+	}
 
     const property_list props = property::buffer::use_host_ptr();
 

@@ -74,12 +74,19 @@ void runVLCTest(char *file_name, uint num_block_threads, uint num_blocks) {
   memset(codewordlens, 0, NUM_SYMBOLS*symbol_type_size);
   memset(cindex2, 0, num_blocks*sizeof(int));
 
-#ifdef USE_GPU
-  gpu_selector dev_sel;
+#ifdef USE_NVIDIA
+    CUDASelector selector;
 #else
-  cpu_selector dev_sel;
+    NEOGPUDeviceSelector selector;
 #endif
-  cl::sycl::queue q(dev_sel);
+
+	cl::sycl::queue q;
+	try {
+		cl::sycl::queue q(selector);
+		cl::sycl::device Device(selector);
+	}catch (cl::sycl::invalid_parameter_error &E) {
+	  std::cout << E.what() << std::endl;
+	}
 
   
   // loadData function also requires GPU offloading
