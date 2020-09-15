@@ -12,7 +12,7 @@ run() {
 run_clang () {
 	# export CPATH=/opt/intel/inteloneapi/compiler/latest/linux/include/sycl
 	make clean; make; run
-	make clean; make DEVICE=cpu; run
+	#make clean; make GPU=intel; run
 }
 
 # # CPATH may be changed accordingly
