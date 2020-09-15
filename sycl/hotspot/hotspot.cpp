@@ -204,12 +204,19 @@ int main(int argc, char** argv) {
 
   long long start_time = get_time();
   { 
-#ifdef USE_GPU
-    gpu_selector dev_sel;
+#ifdef USE_NVIDIA
+    CUDASelector selector;
 #else
-    cpu_selector dev_sel;
+    NEOGPUDeviceSelector selector;
 #endif
-    queue q(dev_sel);
+
+	queue q;
+	try {
+		queue q(selector);
+		cl::sycl::device Device(selector);
+	}catch (cl::sycl::invalid_parameter_error &E) {
+	  std::cout << E.what() << std::endl;
+	}
 
     const property_list props = property::buffer::use_host_ptr();
     buffer<float, 1> MatrixPower(FilesavingPower, size, props);

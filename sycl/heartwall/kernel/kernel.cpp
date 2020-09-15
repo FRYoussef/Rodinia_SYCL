@@ -11,6 +11,30 @@ constexpr access::mode sycl_write      = access::mode::write;
 constexpr access::mode sycl_read_write = access::mode::read_write;
 //constexpr access::mode sycl_atomic     = access::mode::atomic;
 
+// NVIDIA device selector
+class CUDASelector : public device_selector {
+    public:
+        int operator()(const device &Device) const override {
+            const std::string DriverVersion = Device.get_info<info::device::driver_version>();
+
+            if (Device.is_gpu() && (DriverVersion.find("CUDA") != std::string::npos))
+                //std::cout << " CUDA device found " << std::endl;
+                return 1;
+
+            return -1;
+        }
+};
+
+// Intel iGPU
+class NEOGPUDeviceSelector : public device_selector {
+    public:
+        int operator()(const device &Device) const override {
+            const std::string DeviceName = Device.get_info<info::device::name>();
+            //const std::string DeviceVendor = Device.get_info<info::device::vendor>();
+            return Device.is_gpu() && (DeviceName.find("HD Graphics NEO") != std::string::npos);
+        }
+};
+
 void 
 kernel_gpu_wrapper(	params_common common,
 							int* endoRow,
@@ -24,11 +48,12 @@ kernel_gpu_wrapper(	params_common common,
 							avi_t* frames)
 {
 
-#ifdef USE_GPU
-    gpu_selector dev_sel;
+#ifdef USE_NVIDIA
+    CUDASelector selector;
 #else
-    cpu_selector dev_sel;
+    NEOGPUDeviceSelector selector;
 #endif
+
     auto exception_handler = [] (cl::sycl::exception_list exceptions) {
     for (std::exception_ptr const& e : exceptions) {
       try {
@@ -39,8 +64,8 @@ kernel_gpu_wrapper(	params_common common,
       }
     }
   };
-  cl::sycl::queue q(dev_sel, exception_handler);
-  auto device = q.get_device();
+  	queue q(selector, exception_handler);
+	cl::sycl::device device(selector);
 
 #ifdef DEBUG
   auto deviceName = device.get_info<info::device::name>();

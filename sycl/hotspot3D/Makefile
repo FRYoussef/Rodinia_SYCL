@@ -1,7 +1,7 @@
 VENDOR      = intel
 OPTIMIZE    = yes
 DEBUG       = no
-DEVICE      = gpu
+GPU         = nvidia
 
 
 
@@ -11,18 +11,16 @@ CFLAGS := -std=c++11 -Wall
 # Linker flags
 LDFLAGS = -lm
 
-# Codeplay Compiler
-ifneq (,$(findstring codeplay,$(VENDOR)))
-  CC = compute++
-  CFLAGS += -no-serial-memop -sycl -sycl-driver
-  LDFLAGS += -lComputeCpp
-endif
-
 # Intel DPC++ Compiler
 ifneq (,$(findstring intel,$(VENDOR)))
-  CC = dpcpp
-  CFLAGS += 
-  LDFLAGS += 
+  CC = clang++
+  CFLAGS += -fsycl -fsycl-unnamed-lambda
+  LDFLAGS +=
+endif
+
+# Flags for nvidia gpu
+ifneq (,$(findstring nvidia,$(GPU)))
+  CFLAGS += -fsycl-targets=nvptx64-nvidia-cuda-sycldevice -DUSE_NVIDIA
 endif
 
 # Debug Flags

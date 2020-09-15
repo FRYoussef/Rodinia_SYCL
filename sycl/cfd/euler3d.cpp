@@ -366,13 +366,19 @@ int main(int argc, char** argv){
 
   double offload_start = get_time();
   { // SYCL scope
-#ifdef USE_GPU
-    gpu_selector dev_sel;
+#ifdef USE_NVIDIA
+    CUDASelector selector;
 #else
-    cpu_selector dev_sel;
+    NEOGPUDeviceSelector selector;
 #endif
 
-    queue q(dev_sel);
+	queue q;
+	try {
+		queue q(selector);
+		device Device(selector);
+	}catch (invalid_parameter_error &E) {
+	  std::cout << E.what() << std::endl;
+	}
 
     // copy far field conditions to the gpu
 

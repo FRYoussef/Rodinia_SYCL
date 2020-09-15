@@ -115,12 +115,19 @@ float4* runMergeSort(int listsize, int divisions,
   size_t global[] = {blocks*THREADS,1,1};
   size_t grid[] = {blocks,1,1,1};
 
-#ifdef USE_GPU
-  gpu_selector dev_sel;
+#ifdef USE_NVIDIA
+    CUDASelector selector;
 #else
-  cpu_selector dev_sel;
+    NEOGPUDeviceSelector selector;
 #endif
-  queue q(dev_sel);
+
+	queue q;
+	try {
+		queue q(selector);
+		device Device(selector);
+	}catch (invalid_parameter_error &E) {
+	  std::cout << E.what() << std::endl;
+	}
   const property_list props = property::buffer::use_host_ptr();
 
   // divided by four ?

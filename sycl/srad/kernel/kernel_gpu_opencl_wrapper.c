@@ -91,13 +91,19 @@ kernel_gpu_opencl_wrapper(	fp* image,											// input image
 	// common memory size
 	//====================================================================================================100
 
-#ifdef USE_GPU
-  gpu_selector dev_sel;
+#ifdef USE_NVIDIA
+    CUDASelector selector;
 #else
-  cpu_selector dev_sel;
+    NEOGPUDeviceSelector selector;
 #endif
 
-  queue q(dev_sel);
+	queue q;
+	try {
+		queue q(selector);
+		device Device(selector);
+	}catch (invalid_parameter_error &E) {
+	  std::cout << E.what() << std::endl;
+	}
 
 
 #ifdef DEBUG

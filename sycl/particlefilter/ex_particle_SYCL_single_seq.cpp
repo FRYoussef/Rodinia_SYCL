@@ -409,10 +409,10 @@ int particleFilter(unsigned char * I, int IszX, int IszY, int Nfr, int * seed, i
 
   { // sycl scope
 
-#ifdef USE_GPU
-  gpu_selector dev_sel;
+#ifdef USE_NVIDIA
+    CUDASelector dev_sel;
 #else
-  cpu_selector dev_sel;
+    NEOGPUDeviceSelector dev_sel;
 #endif
 	  
 #ifdef DEBUG

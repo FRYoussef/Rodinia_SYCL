@@ -1,7 +1,7 @@
 VENDOR      = intel
 OPTIMIZE    = yes
 DEBUG       = no
-DEVICE      = gpu
+GPU         = nvidia
 OUTPUT      = no
 
 
@@ -12,18 +12,16 @@ CFLAGS := -std=c++11 -Wall
 # Linker flags
 LDFLAGS = -lm
 
-# Codeplay Compiler
-ifneq (,$(findstring codeplay,$(VENDOR)))
-  CC = compute++
-  CFLAGS += -no-serial-memop -sycl -sycl-driver
-  LDFLAGS += -lComputeCpp
-endif
-
 # Intel DPC++ Compiler
 ifneq (,$(findstring intel,$(VENDOR)))
-  CC = dpcpp
-  CFLAGS += 
-  LDFLAGS += 
+  CC = clang++
+  CFLAGS += -fsycl -fsycl-unnamed-lambda
+  LDFLAGS +=
+endif
+
+# Flags for nvidia gpu
+ifneq (,$(findstring nvidia,$(GPU)))
+  CFLAGS += -fsycl-targets=nvptx64-nvidia-cuda-sycldevice -DUSE_NVIDIA
 endif
 
 ifeq ($(OUTPUT),yes)
@@ -47,7 +45,7 @@ endif
 
 # link objects(binaries) together
 pathfinder: main.o 
-	$(CC) main.o $(LDFLAGS) -o pathfinder
+	$(CC) $(CFLAGS) main.o $(LDFLAGS) -o pathfinder
 
 # compile main function file into object (binary)
 main.o: main.cpp  kernel.sycl
