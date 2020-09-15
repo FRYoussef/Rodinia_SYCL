@@ -5,7 +5,6 @@
 #include <math.h>
 #include <sys/time.h>
 #include "backprop.h"
-#include "../gpuselector.h"
 #include "common.h"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -77,9 +76,9 @@ int bpnn_train_kernel(BPNN *net, float *eo, float *eh)
 
 	queue q;
 	try {
-		cl::sycl::queue q(selector);
-		cl::sycl::device Device(selector);
-	} catch (cl::sycl::invalid_parameter_error &E) {
+		queue q(selector);
+		//device Device(selector);
+	} catch (invalid_parameter_error &E) {
 		std::cout << E.what() << std::endl;
 	}
 

@@ -1,4 +1,3 @@
-
 #include <string.h>									// (in directory known to compiler)			needed by memset
 
 //======================================================================================================================================================150
@@ -56,12 +55,19 @@ kernel_gpu_opencl_wrapper(	record *records,
   time0 = get_time();
 
   { // SYCL scope
-#ifdef USE_GPU
-    gpu_selector dev_sel;
+#ifdef USE_NVIDIA
+    CUDASelector selector;
 #else
-    cpu_selector dev_sel;
+    NEOGPUDeviceSelector selector;
 #endif
-    queue q(dev_sel);
+
+	queue q;
+	try {
+		queue q(selector);
+		device Device(selector);
+	}catch (invalid_parameter_error &E) {
+	  std::cout << E.what() << std::endl;
+	}
 
     const property_list props = property::buffer::use_host_ptr();
 
@@ -82,11 +88,11 @@ kernel_gpu_opencl_wrapper(	record *records,
     //====================================================================================================100
 
     size_t local_work_size[1];
-#ifdef USE_GPU
+//#ifdef USE_GPU
     local_work_size[0] = order < 256 ? order : 256;
-#else
-    local_work_size[0] = order < 1024 ? order : 1024;
-#endif
+// #else
+//     local_work_size[0] = order < 1024 ? order : 1024;
+// #endif
     size_t global_work_size[1];
     global_work_size[0] = count * local_work_size[0];
 
