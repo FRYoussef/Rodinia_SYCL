@@ -4,7 +4,7 @@ The benchmarks can be used for CPU, GPU, FPGA, or other architectures that suppo
 
 ##  Prerequisites
 
-You will need to install the DPC++ Compiler to support GPU accelerators. It's available here: https://github.com/intel/llvm/blob/sycl/sycl/doc/GetStartedGuide.md
+You will need to install the DPC++ Compiler to support CUDA GPUs. It's available here: https://github.com/intel/llvm/blob/sycl/sycl/doc/GetStartedGuide.md
 
 
 ## Compilation
